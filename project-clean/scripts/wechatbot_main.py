@@ -35,7 +35,7 @@ MIN_MESSAGE_LENGTH = int(os.getenv("MIN_MESSAGE_LENGTH", "2"))
 _sender_message_times: Dict[str, deque] = defaultdict(deque)
 DEFAULT_CASES_FALLBACK_MESSAGE = (
     "1. No retrieved case titles were returned.\n"
-    "2. The local backend may require retrieval output mapping.\n"
+    "2. The local backend response may need to expose case-title fields (e.g., top_cases/case_titles).\n"
     "3. This is acceptable for demo fallback."
 )
 

@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, make_response
 from dotenv import load_dotenv
 from flask_cors import CORS
 
@@ -58,8 +58,6 @@ def analyze():
         }
 
         # 2. 包装成 Response 对象，并加上“跳过警告”的 Header
-        from flask import make_response  # 确保这行在文件最顶部有 import
-
         resp = make_response(jsonify(result_json))
         resp.headers['ngrok-skip-browser-warning'] = '69420'
 
