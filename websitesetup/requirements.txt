@@ -1,0 +1,13 @@
+flask
+flask-cors
+langchain
+langchain-community
+langchain-openai
+langchain-chroma
+chromadb
+sentence_transformers
+pydantic
+python-dotenv
+langchain-core
+mcp
+uvicorn

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 反诈助手</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; line-height: 1.6; }
+        .container { border: 1px solid #ddd; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        textarea { width: 100%; height: 100px; margin-bottom: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: none; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        button:disabled { background-color: #ccc; }
+        #result-area { margin-top: 20px; padding: 15px; border-top: 2px solid #eee; display: none; }
+        .score { font-weight: bold; color: #d9534f; font-size: 1.2em; }
+        .evidence { background: #f9f9f9; padding: 10px; font-size: 0.9em; color: #666; white-space: pre-wrap; border-left: 4px solid #007bff; }
+        .loading { color: #666; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🛡️ AI 智能反诈分析</h2>
+        <p>请输入你收到的短信内容或遇到的可疑情况：</p>
+
+        <textarea id="userInput" placeholder="例如：收到一条中奖短信，让我点击链接领奖..."></textarea>
+        <button id="sendBtn" onclick="analyze()">开始分析</button>
+
+        <div id="loading" class="loading" style="display: none;">AI 正在分析证据，请稍候...</div>
+
+        <div id="result-area">
+            <h3>分析结果：</h3>
+            <p>诈骗概率：<span id="scoreText" class="score"></span></p>
+            <p><strong>专家理由：</strong></p>
+            <p id="reasonText"></p>
+            <p><strong>参考证据（RAG 检索）：</strong></p>
+            <div id="evidenceText" class="evidence"></div>
+        </div>
+    </div>
+
+    <script>
+        async function analyze() {
+            const input = document.getElementById('userInput').value;
+            const btn = document.getElementById('sendBtn');
+            const resultArea = document.getElementById('result-area');
+            const loading = document.getElementById('loading');
+
+            if (!input.trim()) {
+                alert("请输入内容后再提交");
+                return;
+            }
+
+            // 状态处理
+            btn.disabled = true;
+            loading.style.display = 'block';
+            resultArea.style.display = 'none';
+
+            try {
+                // 向 Flask 后端发送请求
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: input })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    // 填充数据
+                    document.getElementById('scoreText').innerText = (data.probability * 100).toFixed(0) + '%';
+                    document.getElementById('reasonText').innerText = data.reason;
+                    document.getElementById('evidenceText').innerText = data.evidence || "无相关历史案例";
+
+                    // 显示结果
+                    resultArea.style.display = 'block';
+                } else {
+                    alert("错误：" + data.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert("无法连接到后端服务器，请检查 app.py 是否正在运行");
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
