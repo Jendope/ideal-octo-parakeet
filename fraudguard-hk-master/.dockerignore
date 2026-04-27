@@ -1,0 +1,83 @@
+# FraudGuard HK - Docker Ignore File
+# Excludes unnecessary files from Docker build context
+
+# Dependencies
+node_modules
+.pnp
+.pnp.*
+
+# Build outputs
+.next
+out
+build
+dist
+
+# Development files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dev.log
+server.log
+
+# Environment files (should be passed via docker-compose)
+.env
+.env.*
+!.env.example
+
+# IDE and editor files
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+*.pem
+.vercel
+.claude
+.z-ai-config
+test
+prompt
+
+# Android app (separate build)
+android-app
+
+# Data collection scripts (not needed for runtime)
+data-collection
+
+# Skills directory (not needed for runtime)
+skills
+
+# Upload directory
+upload
+
+# Jupyter notebooks
+*.ipynb
+
+# Python files (not needed for Next.js runtime)
+*.py
+pyproject.toml
+uv.lock
+
+# Documentation
+*.md
+!README.md

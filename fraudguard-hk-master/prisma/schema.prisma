@@ -1,0 +1,203 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User Model
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      String   @default("user") // "user" or "admin"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  reports   FraudReport[]
+}
+
+// Fraud Case Database for RAG
+model FraudCase {
+  id            String   @id @default(cuid())
+  title         String
+  content       String   // Full article content
+  summary       String?  // Brief summary
+  
+  // Classification
+  category      String   // "phishing", "lottery", "romance", "investment", "tech_support", "impersonation", "other"
+  severity      String   // "low", "medium", "high", "critical"
+  
+  // Source information
+  source        String   // "hk01", "hkma", "hkpolice", "custom"
+  sourceUrl     String?  @map("source_url")
+  publishedDate String?  @map("published_date") // ISO date string
+  
+  // Vector embedding for RAG (stored as JSON string)
+  embedding     String?  // JSON array of floats
+  
+  // Metadata
+  tags          String?  // JSON array of tags
+  keywords      String?  // JSON array of keywords
+  
+  // Statistics
+  viewCount     Int      @default(0) @map("view_count")
+  matchCount    Int      @default(0) @map("match_count") // Times matched in RAG
+  
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  @@map("fraud_cases")
+}
+
+// User Reports - Reports submitted by users
+model FraudReport {
+  id            String   @id @default(cuid())
+  
+  // Reporter
+  reporterId    String?  @map("reporter_id")
+  reporter      User?    @relation(fields: [reporterId], references: [id])
+  
+  // Report content
+  title         String
+  content       String   // The suspicious content being reported
+  analysis      String?  // AI analysis result (JSON)
+  
+  // Classification
+  category      String?
+  riskLevel     String?  @map("risk_level") // "safe", "low", "medium", "high", "critical"
+  
+  // Status
+  status        String   @default("pending") // "pending", "verified", "rejected"
+  verifiedBy    String?  @map("verified_by")
+  
+  // Source
+  sourceType    String   @map("source_type") // "text", "image", "voice"
+  imageUrl      String?  @map("image_url")
+  
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  @@map("fraud_reports")
+}
+
+// System Configuration
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  @@map("system_config")
+}
+
+// Chat History for analysis
+model ChatHistory {
+  id          String   @id @default(cuid())
+  sessionId   String   @map("session_id")
+  
+  // Message content
+  role        String   // "user" or "assistant"
+  content     String
+  
+  // Analysis metadata
+  modelEngine String?  @map("model_engine") // "MODE_GLM" or "MODE_QWEN"
+  language    String?  // "en", "zh-HK", "zh-CN"
+  userMode    String?  @map("user_mode") // "ELDERLY" or "DEFAULT"
+  
+  // RAG context
+  ragEnabled  Boolean  @default(false) @map("rag_enabled")
+  ragCases    String?  // JSON array of matched case IDs
+  
+  // Timestamps
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  @@index([sessionId])
+  @@map("chat_history")
+}
+
+// Autonomous Agent Logs
+model AgentLog {
+  id          String   @id @default(cuid())
+  
+  // Action details
+  actionType  String   @map("action_type") // "open_app", "click", "scroll", "screenshot", "analyze"
+  actionParams String? @map("action_params") // JSON
+  
+  // Status
+  status      String   // "pending", "running", "completed", "failed"
+  result      String?  // JSON result
+  
+  // Context
+  sessionId   String?  @map("session_id")
+  modelEngine String?  @map("model_engine")
+  
+  // Timestamps
+  startedAt   DateTime @default(now()) @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  
+  @@map("agent_logs")
+}
+
+// Emergency Contacts for Family Alert System
+model EmergencyContact {
+  id          String   @id @default(cuid())
+  
+  // Contact info
+  name        String   // Display name (e.g., "媽咪", "阿仔")
+  phone       String   // Phone number
+  platform    String   @default("whatsapp") // "whatsapp", "wechat", "sms", "call"
+  
+  // Relationship
+  relationship String? // "son", "daughter", "spouse", "sibling", "friend"
+  
+  // Priority (1 = primary, 2 = secondary, etc.)
+  priority    Int      @default(1)
+  
+  // Status
+  isActive    Boolean  @default(true) @map("is_active")
+  
+  // Timestamps
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  alerts      FamilyAlert[]
+  
+  @@map("emergency_contacts")
+}
+
+// Family Alert History
+model FamilyAlert {
+  id          String   @id @default(cuid())
+  
+  // Alert details
+  riskLevel   String   @map("risk_level") // "high", "critical"
+  message     String   // The suspicious message content
+  summary     String?  // AI summary of the threat
+  
+  // Contact
+  contactId   String   @map("contact_id")
+  contact     EmergencyContact @relation(fields: [contactId], references: [id])
+  
+  // Delivery status
+  status      String   @default("pending") // "pending", "sent", "delivered", "failed"
+  platform    String   // "whatsapp", "wechat", "sms"
+  sentAt      DateTime? @map("sent_at")
+  error       String?  // Error message if failed
+  
+  // Timestamps
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  @@map("family_alerts")
+}

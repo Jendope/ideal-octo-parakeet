@@ -1,0 +1,54 @@
+# FraudGuard HK - Docker Compose Configuration
+# For local development and production deployment
+
+services:
+  # ===========================================
+  # FraudGuard HK Web Application
+  # ===========================================
+  fraudguard-hk:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fraudguard-hk
+    ports:
+      - "3000:3000"
+    environment:
+      # Database
+      - DATABASE_URL=file:/app/data/fraudguard.db
+      
+      # Supabase (override in .env or here)
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY}
+      
+      # AI API Keys (override in .env or here)
+      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY}
+      - DASHSCOPE_BASE_URL=${DASHSCOPE_BASE_URL:-https://dashscope-intl.aliyuncs.com/compatible-mode/v1}
+      - BIGMODEL_API_KEY=${BIGMODEL_API_KEY}
+      - BIGMODEL_BASE_URL=${BIGMODEL_BASE_URL:-https://open.bigmodel.cn/api/paas/v4}
+      
+      # Node environment
+      - NODE_ENV=production
+    volumes:
+      # Persist database
+      - fraudguard-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+# ===========================================
+# Volumes
+# ===========================================
+volumes:
+  fraudguard-data:
+    driver: local
+
+# ===========================================
+# Networks (optional - for isolated networking)
+# ===========================================
+networks:
+  default:
+    name: fraudguard-network
