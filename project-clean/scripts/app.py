@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, jsonify
+import os
+from flask import Flask, render_template, request, jsonify, make_response
 from dotenv import load_dotenv
 from flask_cors import CORS
 
@@ -6,7 +7,9 @@ from database_manager import load_my_chroma
 from llm_manager import predict_fraud
 
 
-app = Flask(__name__)
+load_dotenv(os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "config", ".env")))
+
+app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates"))
 CORS(app)
 
 # --- 2. 全局加载数据库 ---
@@ -55,8 +58,6 @@ def analyze():
         }
 
         # 2. 包装成 Response 对象，并加上“跳过警告”的 Header
-        from flask import make_response  # 确保这行在文件最顶部有 import
-
         resp = make_response(jsonify(result_json))
         resp.headers['ngrok-skip-browser-warning'] = '69420'
 
