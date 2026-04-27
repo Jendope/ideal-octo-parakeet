@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 
 load_dotenv()
 
-app = FastAPI(title="WhatsApp Local RAG Demo Webhook")
+app = FastAPI(title="WeChat Bot Local RAG Demo Webhook")
 
 
 # Adapted from classmate message filter logic:
@@ -31,6 +31,7 @@ REQUEST_TIMEOUT_SECONDS = float(os.getenv("REQUEST_TIMEOUT_SECONDS", "25"))
 # Pattern equivalent to classmate's anti-spam guard intent, but explicit for webhook mode.
 RATE_LIMIT_WINDOW_SECONDS = int(os.getenv("RATE_LIMIT_WINDOW_SECONDS", "30"))
 RATE_LIMIT_MAX_MESSAGES = int(os.getenv("RATE_LIMIT_MAX_MESSAGES", "5"))
+MIN_MESSAGE_LENGTH = int(os.getenv("MIN_MESSAGE_LENGTH", "2"))
 _sender_message_times: Dict[str, deque] = defaultdict(deque)
 
 
@@ -241,7 +242,7 @@ async def receive_webhook(request: Request):
             ignored += 1
             continue
 
-        if len(user_text) < 2:
+        if len(user_text) < MIN_MESSAGE_LENGTH:
             ignored += 1
             continue
 
