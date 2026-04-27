@@ -258,8 +258,8 @@ async def receive_webhook(request: Request):
                     to=sender,
                     body="Rate limit reached. Please retry in a short while.",
                 )
-            except HTTPException as exc:
-                errors.append(f"rate-limit-notice-failed:{sender}:{exc.detail}")
+            except HTTPException:
+                errors.append("rate-limit-notice-failed")
             ignored += 1
             continue
 
@@ -268,18 +268,19 @@ async def receive_webhook(request: Request):
             reply_text = _build_demo_reply(rag_output)
             _send_whatsapp_text(phone_number_id=phone_number_id, to=sender, body=reply_text)
             processed += 1
-        except HTTPException as exc:
-            logger.exception("Message processing failed for sender=%s", sender)
-            errors.append(f"{sender}:{exc.detail}")
-        except Exception as exc:
-            logger.exception("Unexpected processing error for sender=%s", sender)
-            errors.append(f"{sender}:unexpected-error:{str(exc)}")
+        except HTTPException:
+            logger.exception("Message processing failed.")
+            errors.append("message-processing-failed")
+        except Exception:
+            logger.exception("Unexpected processing error.")
+            errors.append("unexpected-processing-error")
 
     result = {
         "status": "ok",
         "processed": processed,
         "ignored": ignored,
         "errors": errors,
+        "error_count": len(errors),
     }
     return JSONResponse(content=result, status_code=200)
 
