@@ -19,7 +19,7 @@ def load_my_chroma():
     embedding = LocalEmbedding()
     # 使用绝对路径确保安全
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    persist_dir = os.path.join(base_dir, "chroma_scamdb_20260325")
+    persist_dir = os.path.normpath(os.path.join(base_dir, "..", "vectorstore", "chroma_hk01_scam_db"))
 
     vectorstore = Chroma(
         persist_directory=persist_dir,
@@ -31,7 +31,7 @@ def load_my_chroma():
 def get_retriever():
     embedding = LocalEmbedding()
 
-    persist_dir = "./chroma_scamdb_20260325"
+    persist_dir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "vectorstore", "chroma_hk01_scam_db"))
 
     vectorstore = Chroma(
         persist_directory=persist_dir,
