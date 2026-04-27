@@ -33,6 +33,11 @@ RATE_LIMIT_WINDOW_SECONDS = int(os.getenv("RATE_LIMIT_WINDOW_SECONDS", "30"))
 RATE_LIMIT_MAX_MESSAGES = int(os.getenv("RATE_LIMIT_MAX_MESSAGES", "5"))
 MIN_MESSAGE_LENGTH = int(os.getenv("MIN_MESSAGE_LENGTH", "2"))
 _sender_message_times: Dict[str, deque] = defaultdict(deque)
+DEFAULT_CASES_FALLBACK_MESSAGE = (
+    "1. No retrieved case titles were returned.\n"
+    "2. The local backend may require retrieval output mapping.\n"
+    "3. This is acceptable for demo fallback."
+)
 
 
 logging.basicConfig(
@@ -114,7 +119,7 @@ def _build_demo_reply(raw_result: Dict[str, Any]) -> str:
     if top_cases:
         cases_text = "\n".join([f"{idx + 1}. {title}" for idx, title in enumerate(top_cases)])
     else:
-        cases_text = "1. No retrieved case titles were returned.\n2. The local backend may require retrieval output mapping.\n3. This is acceptable for demo fallback."
+        cases_text = DEFAULT_CASES_FALLBACK_MESSAGE
     return (
         "🛡️ Fraud Detection Demo (Local RAG via ngrok)\n\n"
         f"Fraud Score (0-10): {score:.1f}\n\n"
