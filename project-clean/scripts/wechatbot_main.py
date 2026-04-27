@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 
 
-load_dotenv()
+load_dotenv(os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "config", ".env")))
 
 app = FastAPI(title="WeChat Bot Local RAG Demo Webhook")
 
@@ -283,4 +283,4 @@ async def receive_webhook(request: Request):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
+    uvicorn.run("wechatbot_main:app", host="0.0.0.0", port=8000, reload=False)
