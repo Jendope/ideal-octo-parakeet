@@ -146,7 +146,7 @@ def _call_local_rag(user_text: str) -> Dict[str, Any]:
             detail="Local RAG backend is unreachable (ngrok/backend disconnect).",
         ) from exc
     except requests.exceptions.HTTPError as exc:
-        raise HTTPException(status_code=502, detail=f"Local RAG backend HTTP error: {exc}") from exc
+        raise HTTPException(status_code=502, detail="Local RAG backend returned an HTTP error.") from exc
     except ValueError as exc:
         raise HTTPException(status_code=502, detail="Local RAG backend returned invalid JSON.") from exc
 
@@ -183,12 +183,7 @@ def _send_whatsapp_text(phone_number_id: str, to: str, body: str) -> None:
     except requests.exceptions.ConnectionError as exc:
         raise HTTPException(status_code=503, detail="Network error while sending WhatsApp reply.") from exc
     except requests.exceptions.HTTPError as exc:
-        body_text = ""
-        try:
-            body_text = resp.text
-        except Exception:
-            body_text = "(unavailable)"
-        raise HTTPException(status_code=502, detail=f"WhatsApp API error: {exc}; body={body_text}") from exc
+        raise HTTPException(status_code=502, detail="WhatsApp API returned an HTTP error.") from exc
 
 
 @app.get("/health")
